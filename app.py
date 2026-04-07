@@ -40,11 +40,12 @@ a:hover, .stMarkdown a:hover {
     --orange:      #FF6A00;
 }
 
-/* ── Hide Streamlit Chrome ── */
-#MainMenu, footer, header,
+/* ── Hide Streamlit Chrome (Surgically) ── */
+#MainMenu, footer, 
 [data-testid="stToolbar"],
 [data-testid="stDecoration"],
 [data-testid="stStatusWidget"],
+[data-testid="stActionElements"], /* Hides header actions like deploy */
 .stDeployButton { display: none !important; }
 
 /* ── Base App Styling ── */
@@ -57,6 +58,26 @@ a:hover, .stMarkdown a:hover {
     background: transparent !important;
     padding: 0 !important;
     max-width: 100% !important;
+}
+
+/* ── HEADER & SIDEBAR TOGGLE ── */
+/* Keep header so toggle works, but make it transparent */
+header[data-testid="stHeader"] {
+    background: transparent !important;
+    border: none !important;
+}
+/* Style the sidebar expand button to match theme */
+[data-testid="collapsedControl"] {
+    color: var(--text-sec) !important;
+    background: var(--surface) !important;
+    border: 1px solid var(--border) !important;
+    border-radius: 8px !important;
+    margin: 16px !important;
+    transition: all 0.2s ease !important;
+}
+[data-testid="collapsedControl"]:hover {
+    color: var(--text) !important;
+    background: rgba(255, 255, 255, 0.08) !important;
 }
 
 /* ── SIDEBAR STYLING ── */
@@ -208,36 +229,61 @@ a:hover, .stMarkdown a:hover {
     line-height: 1.7 !important;
 }
 
-/* ── CHAT INPUT (Transparent & Centered visually) ── */
-/* Streamlit pins this to bottom, we style it to look floating and transparent */
+/* ── CHAT INPUT (Gemini-style Single Box) ── */
+/* Remove dark background block behind input */
 [data-testid="stBottomBlockContainer"] {
-    background: linear-gradient(180deg, transparent, var(--bg) 40%) !important;
-    padding-bottom: 20px !important;
+    background: var(--bg) !important;
+    padding-bottom: 32px !important;
 }
+
+/* Target the main input wrapper */
 [data-testid="stChatInput"] {
     max-width: 800px !important;
     margin: 0 auto !important;
     background: transparent !important;
+}
+
+/* The actual single visual box container */
+.stChatInputContainer {
+    background: rgba(255, 255, 255, 0.04) !important;
+    border: 1px solid var(--border) !important;
+    border-radius: 24px !important; /* Rounded pill shape */
+    padding: 6px 12px !important;
+    transition: all 0.2s ease !important;
+}
+.stChatInputContainer:focus-within {
+    border-color: rgba(255, 255, 255, 0.15) !important;
+    background: rgba(255, 255, 255, 0.06) !important;
+}
+
+/* The text area inside the box */
+.stChatInputContainer textarea {
+    background: transparent !important;
+    border: none !important;
+    box-shadow: none !important;
+    color: var(--text) !important;
+    font-size: 15px !important;
+    padding-left: 10px !important;
+}
+.stChatInputContainer textarea:focus {
+    background: transparent !important;
+    outline: none !important;
     border: none !important;
     box-shadow: none !important;
 }
-[data-testid="stChatInput"] textarea {
-    background: rgba(255,255,255,0.06) !important;
-    border: 1px solid var(--border) !important;
-    border-radius: 16px !important;
-    padding: 16px 20px !important;
-    color: var(--text) !important;
-    font-size: 15px !important;
-}
-[data-testid="stChatInput"] textarea:focus {
-    border-color: rgba(255,255,255,0.2) !important;
-    background: rgba(255,255,255,0.08) !important;
-}
+
+/* Send button styling */
 [data-testid="stChatInputSubmitButton"] {
     background: transparent !important;
+    border: none !important;
+    border-radius: 50% !important;
 }
 [data-testid="stChatInputSubmitButton"] svg { 
-    fill: var(--text) !important; 
+    fill: var(--text-sec) !important; 
+    transition: fill 0.2s ease !important;
+}
+[data-testid="stChatInputSubmitButton"]:hover svg {
+    fill: var(--text) !important;
 }
 
 /* Scrollbar */
@@ -376,8 +422,6 @@ st.markdown('</div>', unsafe_allow_html=True)
 
 
 # ── Chat Input ────────────────────────────────────────────────────────────────
-# Streamlit inherently keeps this at the bottom of the screen.
-# Custom CSS above removes the background box to make it appear floating/clean.
 user_input = st.chat_input("Message the advisor...")
 
 if user_input:
