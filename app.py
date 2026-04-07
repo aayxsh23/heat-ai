@@ -7,6 +7,7 @@ import requests
 st.set_page_config(page_title="HEAT Agents", layout="wide")
 
 GROQ_API_KEY = st.secrets["GROQ_API_KEY"]
+
 # ---------------------------
 # API CALL FUNCTION
 # ---------------------------
@@ -26,8 +27,26 @@ def get_response(system_prompt, user_input):
         ]
     }
 
-    response = requests.post(url, headers=headers, json=data)
-    return response.json()['choices'][0]['message']['content']
+    try:
+        response = requests.post(url, headers=headers, json=data, timeout=30)
+        result = response.json()
+
+        if "choices" not in result:
+            error_msg = result.get("error", {}).get("message", str(result))
+            st.error(f"API Error: {error_msg}")
+            return None
+
+        return result['choices'][0]['message']['content']
+
+    except requests.exceptions.Timeout:
+        st.error("Request timed out. Please try again.")
+        return None
+    except requests.exceptions.ConnectionError:
+        st.error("Connection error. Check your internet connection.")
+        return None
+    except Exception as e:
+        st.error(f"Unexpected error: {str(e)}")
+        return None
 
 # ---------------------------
 # AGENT DEFINITIONS
@@ -155,21 +174,32 @@ st.divider()
 if "messages" not in st.session_state:
     st.session_state.messages = []
 
-user_input = st.chat_input("Ask your question...")
-
-if user_input:
-    st.session_state.messages.append({"role": "user", "content": user_input})
-
-    response = get_response(agent["prompt"], user_input)
-
-    st.session_state.messages.append({"role": "assistant", "content": response})
-
 # ---------------------------
 # DISPLAY CHAT
 # ---------------------------
 for msg in st.session_state.messages:
     with st.chat_message(msg["role"]):
         st.write(msg["content"])
+
+# ---------------------------
+# CHAT INPUT
+# ---------------------------
+user_input = st.chat_input("Ask your question...")
+
+if user_input:
+    # Show user message immediately
+    st.session_state.messages.append({"role": "user", "content": user_input})
+    with st.chat_message("user"):
+        st.write(user_input)
+
+    # Get and show assistant response
+    with st.chat_message("assistant"):
+        with st.spinner("Thinking..."):
+            response = get_response(agent["prompt"], user_input)
+
+        if response:
+            st.write(response)
+            st.session_state.messages.append({"role": "assistant", "content": response})
 
 # ---------------------------
 # FOOTER NAV
