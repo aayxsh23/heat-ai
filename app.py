@@ -20,7 +20,7 @@ def get_response(system_prompt, user_input):
     }
 
     data = {
-        "model": "llama3-8b-8192",
+        "model": "llama-3.1-8b-instant",
         "messages": [
             {"role": "system", "content": system_prompt},
             {"role": "user", "content": user_input}
@@ -173,6 +173,18 @@ st.divider()
 # ---------------------------
 if "messages" not in st.session_state:
     st.session_state.messages = []
+
+
+user_input = st.chat_input("Ask your question...")
+
+if user_input:
+    st.session_state.messages.append({"role": "user", "content": user_input})
+
+    with st.spinner("Thinking..."):
+        response = get_response(agent["prompt"], user_input)
+
+    if response:
+        st.session_state.messages.append({"role": "assistant", "content": response})
 
 # ---------------------------
 # DISPLAY CHAT
