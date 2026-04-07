@@ -1,7 +1,7 @@
 import streamlit as st
 import requests
 
-st.set_page_config(page_title="HEAT Agents", layout="wide", initial_sidebar_state="collapsed")
+st.set_page_config(page_title="HEAT Agents", layout="wide", initial_sidebar_state="expanded")
 
 # NOTE: Ensure your secrets are configured in .streamlit/secrets.toml
 try:
@@ -13,34 +13,31 @@ except KeyError:
 st.markdown("""
 <style>
 /* ── Fonts ── */
-@import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@300;400;500&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@300;400;500&display=swap');
 
 /* ── Reset & Global Overrides ── */
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
-/* Force Link Colors to match theme (removes Streamlit Blue) */
+/* Force Link Colors to white/theme (removes Streamlit Blue) */
 a, a:visited, .stMarkdown a {
-    color: var(--text-sec) !important;
+    color: #FFFFFF !important;
     text-decoration: none !important;
-    transition: color 0.2s ease !important;
+    transition: opacity 0.2s ease !important;
 }
 a:hover, .stMarkdown a:hover {
-    color: var(--text) !important;
+    opacity: 0.7 !important;
 }
 
 /* ── HEAT Design Tokens ── */
 :root {
     --bg:          #0B0B0B;
+    --sidebar-bg:  #111111;
     --surface:     rgba(255,255,255,0.03);
-    --surface2:    rgba(255,255,255,0.06);
     --border:      rgba(255,255,255,0.08);
-    --divider:     rgba(255,255,255,0.06);
     --text:        #FFFFFF;
-    --text-sec:    rgba(255,255,255,0.5);
-    --text-muted:  rgba(255,255,255,0.25);
+    --text-sec:    rgba(255,255,255,0.6);
+    --text-muted:  rgba(255,255,255,0.3);
     --orange:      #FF6A00;
-    --glow:        rgba(255,106,0,0.15);
-    --input-bg:    rgba(255,255,255,0.05);
 }
 
 /* ── Hide Streamlit Chrome ── */
@@ -56,179 +53,108 @@ a:hover, .stMarkdown a:hover {
     font-family: 'Inter', sans-serif;
     color: var(--text);
 }
-[data-testid="stMain"] > div,
-.block-container {
+[data-testid="stMain"] > div, .block-container {
     background: transparent !important;
     padding: 0 !important;
     max-width: 100% !important;
 }
 
-/* ── TOP NAVBAR (Ultra Minimal) ── */
-.heat-nav {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    padding: 0 40px;
-    height: 60px;
-    background: var(--bg);
-    border-bottom: 1px solid var(--divider);
-    position: sticky;
-    top: 0;
-    z-index: 999;
+/* ── SIDEBAR STYLING ── */
+[data-testid="stSidebar"] {
+    background-color: var(--sidebar-bg) !important;
+    border-right: 1px solid var(--border) !important;
 }
-.heat-nav-logo {
-    font-family: 'Space Grotesk', sans-serif;
-    font-weight: 700;
-    font-size: 16px;
-    letter-spacing: 0.25em;
-    text-transform: uppercase;
+[data-testid="stSidebar"] * {
+    font-family: 'Inter', sans-serif;
+}
+/* Adjust Sidebar button */
+[data-testid="stSidebar"] div[data-testid="stButton"] > button {
+    background: transparent !important;
+    border: 1px solid var(--border) !important;
+    color: var(--text) !important;
+    justify-content: flex-start !important;
+    padding: 10px 14px !important;
+    border-radius: 8px !important;
+    font-weight: 500 !important;
+}
+[data-testid="stSidebar"] div[data-testid="stButton"] > button:hover {
+    background: var(--surface) !important;
+}
+/* Search Input in Sidebar */
+[data-testid="stSidebar"] [data-testid="stTextInput"] div[data-baseweb="input"] {
+    background: rgba(255,255,255,0.05) !important;
+    border: 1px solid transparent !important;
+    border-radius: 8px !important;
+}
+[data-testid="stSidebar"] [data-testid="stTextInput"] input {
     color: var(--text) !important;
 }
-
-/* ── DASHBOARD HUB ── */
-.hub-wrap {
-    max-width: 860px;
-    margin: 0 auto;
-    padding: 80px 40px;
-}
-.hub-title {
-    font-family: 'Space Grotesk', sans-serif;
-    font-size: 42px;
-    font-weight: 600;
-    color: var(--text);
-    line-height: 1.1;
-    margin-bottom: 16px;
-    letter-spacing: -0.02em;
-}
-.hub-subtitle {
-    font-family: 'Inter', sans-serif;
-    font-size: 15px;
-    color: var(--text-sec);
-    margin-bottom: 56px;
-    font-weight: 400;
-    line-height: 1.6;
-}
-
-/* ── AGENT CARDS ── */
-.agent-card {
-    background: transparent;
-    border: 1px solid var(--border);
-    border-radius: 12px;
-    padding: 24px;
-    transition: all 0.2s ease;
-    cursor: pointer;
-    margin-bottom: 16px;
+/* Bottom User/Login Section */
+.sidebar-bottom-container {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    padding: 20px;
+    border-top: 1px solid var(--border);
+    background: var(--sidebar-bg);
     display: flex;
-    flex-direction: column;
+    align-items: center;
     gap: 12px;
 }
-.agent-card:hover {
+.sidebar-avatar {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
     background: var(--surface);
-    border-color: rgba(255,255,255,0.15);
-    transform: translateY(-2px);
-}
-.card-header {
+    border: 1px solid var(--border);
     display: flex;
-    justify-content: space-between;
     align-items: center;
+    justify-content: center;
+    font-size: 14px;
 }
-.card-name {
-    font-family: 'Space Grotesk', sans-serif;
-    font-size: 18px;
-    font-weight: 600;
-    color: var(--text);
-    letter-spacing: -0.01em;
+.sidebar-login-text {
+    font-size: 14px;
+    font-weight: 500;
 }
-.card-desc {
-    font-family: 'Inter', sans-serif;
+
+/* ── TOP NAV BAR ── */
+.top-nav {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 16px 24px;
+    background: transparent;
+    border-bottom: 1px solid var(--border);
+}
+.nav-left, .nav-right {
+    flex: 1;
     font-size: 14px;
     color: var(--text-sec);
-    line-height: 1.5;
-    font-weight: 400;
 }
-
-/* ── BADGES ── */
-.badge-row { display: flex; gap: 8px; align-items: center; }
-.badge {
-    font-family: 'Inter', sans-serif;
-    font-size: 11px;
-    font-weight: 500;
-    letter-spacing: 0.05em;
-    padding: 4px 10px;
-    border-radius: 6px;
-    text-transform: uppercase;
-    background: var(--surface2);
-    color: var(--text-muted);
-    border: 1px solid var(--border);
-}
-.badge-high { color: rgba(255,107,107,0.9); }
-.badge-medium { color: rgba(232,160,32,0.9); }
-.badge-low { color: rgba(51,204,119,0.9); }
-
-/* ── BUTTON SYSTEM ── */
-div[data-testid="stButton"] > button {
-    background: var(--surface2) !important;
-    color: var(--text) !important;
-    border: 1px solid var(--border) !important;
-    border-radius: 8px !important;
-    padding: 8px 16px !important;
-    font-family: 'Inter', sans-serif !important;
-    font-size: 13px !important;
-    font-weight: 500 !important;
-    transition: all 0.2s ease !important;
-}
-div[data-testid="stButton"] > button:hover {
-    background: rgba(255,255,255,0.1) !important;
-    border-color: rgba(255,255,255,0.2) !important;
-}
-div[data-testid="stButton"] > button:focus { outline: none !important; box-shadow: none !important; }
-
-/* Primary specific overrides */
-.primary-action > div[data-testid="stButton"] > button {
-    background: var(--orange) !important;
-    border-color: var(--orange) !important;
-    color: #fff !important;
-}
-.primary-action > div[data-testid="stButton"] > button:hover {
-    background: #e65f00 !important;
-    transform: translateY(-1px) !important;
-}
-
-/* Back button minimal */
-.back-btn-wrap div[data-testid="stButton"] > button {
-    background: transparent !important;
-    border-color: transparent !important;
-    color: var(--text-sec) !important;
-    padding: 0 !important;
-    justify-content: flex-start !important;
-}
-.back-btn-wrap div[data-testid="stButton"] > button:hover {
-    color: var(--text) !important;
-    background: transparent !important;
-}
-
-/* ── CHAT VIEW HEADER ── */
-.chat-header {
-    max-width: 860px;
-    margin: 40px auto;
-    padding: 0 40px;
-}
-.chat-agent-name {
+.nav-right {
+    text-align: right;
     font-family: 'Space Grotesk', sans-serif;
-    font-size: 28px;
-    font-weight: 600;
-    color: var(--text);
-    margin-bottom: 8px;
-    letter-spacing: -0.02em;
+    font-weight: 500;
+    color: var(--text-muted);
+}
+.nav-center {
+    flex: 1;
+    text-align: center;
+    font-family: 'Space Grotesk', sans-serif;
+    font-weight: 700;
+    font-size: 20px;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
 }
 
-/* ── EMPTY STATE ── */
-.empty-state {
+/* ── EMPTY STATE / GREETING ── */
+.empty-state-wrapper {
     display: flex;
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    height: 40vh;
+    height: 60vh;
     text-align: center;
     animation: fadeIn 0.8s ease forwards;
 }
@@ -236,71 +162,85 @@ div[data-testid="stButton"] > button:focus { outline: none !important; box-shado
     from { opacity: 0; transform: translateY(10px); }
     to { opacity: 1; transform: translateY(0); }
 }
-.empty-state h1 {
+.empty-state-wrapper h1 {
     font-family: 'Space Grotesk', sans-serif;
-    font-size: 48px;
+    font-size: 52px;
     font-weight: 500;
     color: var(--text);
-    margin-bottom: 12px;
+    margin-bottom: 16px;
+    letter-spacing: -0.02em;
 }
-.empty-state p {
+.empty-state-wrapper p {
     font-family: 'Inter', sans-serif;
-    font-size: 15px;
+    font-size: 16px;
     color: var(--text-sec);
-    max-width: 400px;
+    max-width: 450px;
     line-height: 1.6;
 }
 
 /* ── CHAT BUBBLES ── */
 .chat-container {
-    max-width: 860px;
+    max-width: 800px;
     margin: 0 auto;
-    padding: 0 40px 100px 40px;
+    padding: 40px 20px 120px 20px;
 }
 [data-testid="stChatMessage"] {
     border-radius: 12px !important;
-    margin-bottom: 16px !important;
-    padding: 16px 20px !important;
-    border: 1px solid transparent !important;
+    margin-bottom: 24px !important;
+    padding: 0 !important;
+    border: none !important;
     background: transparent !important;
+    display: flex !important;
+    gap: 16px !important;
 }
-[data-testid="stChatMessage"][data-testid*="user"] {
-    background: var(--surface) !important;
-    border-color: var(--border) !important;
+[data-testid="stChatMessageAvatar"] {
+    width: 32px !important;
+    height: 32px !important;
+    border-radius: 8px !important;
 }
-[data-testid="stChatMessage"]:has([data-testid="chatAvatarIcon-assistant"]) {
-    background: var(--glow) !important;
-    border-color: rgba(255,106,0,0.1) !important;
+[data-testid="stChatMessageContent"] {
+    flex: 1 !important;
 }
 [data-testid="stChatMessage"] p {
     color: var(--text) !important;
     font-family: 'Inter', sans-serif !important;
-    font-size: 14.5px !important;
-    line-height: 1.6 !important;
+    font-size: 15px !important;
+    line-height: 1.7 !important;
 }
 
-/* ── CHAT INPUT ── */
-[data-testid="stChatInput"] {
-    background: var(--bg) !important;
-    border: 1px solid var(--border) !important;
-    border-radius: 12px !important;
-    transition: border-color 0.2s ease !important;
+/* ── CHAT INPUT (Transparent & Centered visually) ── */
+/* Streamlit pins this to bottom, we style it to look floating and transparent */
+[data-testid="stBottomBlockContainer"] {
+    background: linear-gradient(180deg, transparent, var(--bg) 40%) !important;
+    padding-bottom: 20px !important;
 }
-[data-testid="stChatInput"]:focus-within {
-    border-color: var(--orange) !important;
+[data-testid="stChatInput"] {
+    max-width: 800px !important;
+    margin: 0 auto !important;
+    background: transparent !important;
+    border: none !important;
+    box-shadow: none !important;
 }
 [data-testid="stChatInput"] textarea {
+    background: rgba(255,255,255,0.06) !important;
+    border: 1px solid var(--border) !important;
+    border-radius: 16px !important;
+    padding: 16px 20px !important;
     color: var(--text) !important;
-    font-family: 'Inter', sans-serif !important;
-    font-size: 14px !important;
+    font-size: 15px !important;
 }
-[data-testid="stChatInput"] textarea::placeholder {
-    color: var(--text-muted) !important;
+[data-testid="stChatInput"] textarea:focus {
+    border-color: rgba(255,255,255,0.2) !important;
+    background: rgba(255,255,255,0.08) !important;
 }
-[data-testid="stChatInputSubmitButton"] svg { fill: var(--text-sec) !important; transition: fill 0.2s; }
-[data-testid="stChatInputSubmitButton"]:hover svg { fill: var(--text) !important; }
+[data-testid="stChatInputSubmitButton"] {
+    background: transparent !important;
+}
+[data-testid="stChatInputSubmitButton"] svg { 
+    fill: var(--text) !important; 
+}
 
-/* Scrollbar minimal */
+/* Scrollbar */
 ::-webkit-scrollbar { width: 4px; }
 ::-webkit-scrollbar-track { background: transparent; }
 ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 4px; }
@@ -340,153 +280,118 @@ def get_response(system_prompt, user_input):
 agents = {
     "founder": {
         "name": "Startup Founder",
-        "risk": "High",
-        "focus": "Growth",
-        "description": "Prioritizes speed and scale. Action beats analysis.",
         "prompt": "You are a bold startup founder. Move fast, take risks, prioritize execution."
     },
     "strategist": {
         "name": "Corporate Strategist",
-        "risk": "Low",
-        "focus": "Stability",
-        "description": "Data-driven decision making. Focuses on risk mitigation.",
         "prompt": "You are a corporate strategist. Think in structures, mitigate risks, be data-driven."
     },
     "minimalist": {
         "name": "Minimalist Advisor",
-        "risk": "Low",
-        "focus": "Efficiency",
-        "description": "Seeks the simplest, lowest-effort path to a viable solution.",
         "prompt": "You are a minimalist advisor. Keep things incredibly simple. Avoid unnecessary effort."
     },
     "hustler": {
         "name": "Freelance Hustler",
-        "risk": "Medium",
-        "focus": "ROI",
-        "description": "Execution-heavy. Focuses on immediate ROI and cash flow.",
         "prompt": "You are a freelancer hustler. Focus on cash flow and rapid practical execution."
     }
 }
 
 # ── Session State ─────────────────────────────────────────────────────────────
-if "view" not in st.session_state:
-    st.session_state.view = "hub"
 if "active_agent" not in st.session_state:
-    st.session_state.active_agent = None
+    st.session_state.active_agent = "minimalist" # Default based on screenshot
 if "messages" not in st.session_state:
     st.session_state.messages = {}
 
-# ── Navbar ────────────────────────────────────────────────────────────────────
-st.markdown("""
-<div class="heat-nav">
-    <div class="heat-nav-logo">HEAT</div>
-</div>
-""", unsafe_allow_html=True)
-
-# ── Routing Helper ────────────────────────────────────────────────────────────
-# Handle URL params if navigating directly to an agent
-if "agent" in st.query_params and st.session_state.view == "hub":
+# Handle URL params
+if "agent" in st.query_params:
     agent_key = st.query_params["agent"]
     if agent_key in agents:
-        st.session_state.view = "chat"
         st.session_state.active_agent = agent_key
 
-# ── VIEW: HUB (Dashboard) ─────────────────────────────────────────────────────
-if st.session_state.view == "hub":
-    st.markdown('<div class="hub-wrap">', unsafe_allow_html=True)
+key = st.session_state.active_agent
+agent = agents.get(key, agents["minimalist"])
 
-    st.markdown("""
-    <div class="hub-title">Select an Advisor.</div>
-    <div class="hub-subtitle">Specialized AI agents programmed with distinct operational philosophies.</div>
-    """, unsafe_allow_html=True)
+if key not in st.session_state.messages:
+    st.session_state.messages[key] = []
 
-    cols = st.columns(2, gap="large")
-    agent_keys = list(agents.keys())
 
-    for i, key in enumerate(agent_keys):
-        ag = agents[key]
-        risk_class = f"badge-{ag['risk'].lower()}"
-        col = cols[i % 2]
-
-        with col:
-            # Render card visual
-            st.markdown(f"""
-            <div class="agent-card">
-                <div class="card-header">
-                    <div class="card-name">{ag["name"]}</div>
-                    <div class="badge-row">
-                        <span class="badge {risk_class}">{ag["risk"]} Risk</span>
-                    </div>
-                </div>
-                <div class="card-desc">{ag["description"]}</div>
-            </div>
-            """, unsafe_allow_html=True)
-            
-            # Action button overlay logic
-            if st.button(f"Consult {ag['name']}", key=f"btn_{key}", use_container_width=True):
-                st.session_state.view = "chat"
-                st.session_state.active_agent = key
-                if key not in st.session_state.messages:
-                    st.session_state.messages[key] = []
-                st.rerun()
-
-    st.markdown('</div>', unsafe_allow_html=True)
-
-# ── VIEW: CHAT ────────────────────────────────────────────────────────────────
-elif st.session_state.view == "chat":
-    key = st.session_state.active_agent or "founder"
-    agent = agents.get(key, agents["founder"])
-
-    if key not in st.session_state.messages:
-        st.session_state.messages[key] = []
-
-    # Clean header with back button
-    st.markdown('<div class="chat-header">', unsafe_allow_html=True)
+# ── Sidebar ───────────────────────────────────────────────────────────────────
+with st.sidebar:
+    st.button("⨁ New Chat", use_container_width=True)
+    st.markdown("<div style='height: 16px;'></div>", unsafe_allow_html=True)
     
-    st.markdown('<div class="back-btn-wrap">', unsafe_allow_html=True)
-    if st.button("← Back to Hub"):
-        st.session_state.view = "hub"
-        st.rerun()
-    st.markdown('</div>', unsafe_allow_html=True)
+    st.text_input("search", placeholder="Search chat...", label_visibility="collapsed")
+    st.markdown("<div style='height: 24px;'></div>", unsafe_allow_html=True)
+    
+    # Fake History for layout display
+    st.markdown("<span style='font-size: 12px; color: var(--text-muted); font-weight: 600; letter-spacing: 1px; text-transform: uppercase;'>Recent</span>", unsafe_allow_html=True)
+    st.markdown("<div style='padding: 10px 0; font-size: 14px; color: var(--text-sec); cursor: pointer;'>Q3 Efficiency Strategy</div>", unsafe_allow_html=True)
+    st.markdown("<div style='padding: 10px 0; font-size: 14px; color: var(--text-sec); cursor: pointer;'>Simplifying onboarding</div>", unsafe_allow_html=True)
 
-    st.markdown(f"""
-        <div style="margin-top: 24px;">
-            <div class="chat-agent-name">{agent["name"]}</div>
-            <div class="badge-row">
-                <span class="badge badge-focus">{agent["focus"]} Focus</span>
-            </div>
+    # Bottom Login Section
+    st.markdown("""
+    <div class="sidebar-bottom-container">
+        <div class="sidebar-avatar">?</div>
+        <div class="sidebar-login-text">
+            <a href="#">Sign in</a>
         </div>
     </div>
     """, unsafe_allow_html=True)
 
-    st.markdown('<div class="chat-container">', unsafe_allow_html=True)
 
-    # Render Empty State OR Chat History
-    if len(st.session_state.messages[key]) == 0:
-        st.markdown(f"""
-        <div class="empty-state">
-            <h1>Hello.</h1>
-            <p>I am the {agent['name']}.<br>How can we proceed efficiently today?</p>
-        </div>
-        """, unsafe_allow_html=True)
-    else:
-        for msg in st.session_state.messages[key]:
-            with st.chat_message(msg["role"]):
-                st.write(msg["content"])
+# ── Top Navbar ────────────────────────────────────────────────────────────────
+st.markdown(f"""
+<div class="top-nav">
+    <div class="nav-left">
+        <a href="https://heat-ai.c36.airoapp.ai/explore">← Explore AI</a>
+    </div>
+    <div class="nav-center">
+        <a href="https://heat-ai.c36.airoapp.ai/">HEAT</a>
+    </div>
+    <div class="nav-right">
+        {agent['name']} <span style="color: var(--orange);">●</span>
+    </div>
+</div>
+""", unsafe_allow_html=True)
 
-    st.markdown('</div>', unsafe_allow_html=True)
 
-    # Chat Input
-    user_input = st.chat_input("Message...")
+# ── Chat Container ────────────────────────────────────────────────────────────
+st.markdown('<div class="chat-container">', unsafe_allow_html=True)
 
-    if user_input:
-        st.session_state.messages[key].append({"role": "user", "content": user_input})
-        with st.chat_message("user"):
-            st.write(user_input)
+# Render Empty State OR Chat History
+if len(st.session_state.messages[key]) == 0:
+    # Centered Welcome Message
+    st.markdown(f"""
+    <div class="empty-state-wrapper">
+        <h1>Good evening.</h1>
+        <p>I am the <b>{agent['name']}</b>.<br>How can we align and proceed efficiently today?</p>
+    </div>
+    """, unsafe_allow_html=True)
+else:
+    for msg in st.session_state.messages[key]:
+        with st.chat_message(msg["role"]):
+            st.write(msg["content"])
 
-        with st.chat_message("assistant"):
-            with st.spinner("Thinking..."):
-                response = get_response(agent["prompt"], user_input)
-            if response:
-                st.write(response)
-                st.session_state.messages[key].append({"role": "assistant", "content": response})
+st.markdown('</div>', unsafe_allow_html=True)
+
+
+# ── Chat Input ────────────────────────────────────────────────────────────────
+# Streamlit inherently keeps this at the bottom of the screen.
+# Custom CSS above removes the background box to make it appear floating/clean.
+user_input = st.chat_input("Message the advisor...")
+
+if user_input:
+    st.session_state.messages[key].append({"role": "user", "content": user_input})
+    st.rerun()
+
+# ── Handle Assistant Response generation ──
+if len(st.session_state.messages[key]) > 0 and st.session_state.messages[key][-1]["role"] == "user":
+    last_user_msg = st.session_state.messages[key][-1]["content"]
+    
+    with st.chat_message("assistant"):
+        with st.spinner("Analyzing..."):
+            response = get_response(agent["prompt"], last_user_msg)
+            
+        if response:
+            st.write(response)
+            st.session_state.messages[key].append({"role": "assistant", "content": response})
