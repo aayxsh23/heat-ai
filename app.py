@@ -13,7 +13,7 @@ except KeyError:
 st.markdown("""
 <style>
 /* ── Fonts ── */
-@import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@300;400;500&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@300;400;500;600&display=swap');
 
 /* ── Reset & Global Overrides ── */
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
@@ -40,12 +40,12 @@ a:hover, .stMarkdown a:hover {
     --orange:      #FF6A00;
 }
 
-/* ── Hide Streamlit Chrome (Surgically) ── */
+/* ── Clean Up Streamlit Chrome ── */
 #MainMenu, footer, 
 [data-testid="stToolbar"],
 [data-testid="stDecoration"],
 [data-testid="stStatusWidget"],
-[data-testid="stActionElements"], /* Hides header actions like deploy */
+[data-testid="stActionElements"], /* Hides top right header actions */
 .stDeployButton { display: none !important; }
 
 /* ── Base App Styling ── */
@@ -61,12 +61,12 @@ a:hover, .stMarkdown a:hover {
 }
 
 /* ── HEADER & SIDEBAR TOGGLE ── */
-/* Keep header so toggle works, but make it transparent */
+/* Keep header so the toggle button works, but make it transparent */
 header[data-testid="stHeader"] {
     background: transparent !important;
     border: none !important;
 }
-/* Style the sidebar expand button to match theme */
+/* Style the sidebar expand button to match premium UI */
 [data-testid="collapsedControl"] {
     color: var(--text-sec) !important;
     background: var(--surface) !important;
@@ -74,6 +74,7 @@ header[data-testid="stHeader"] {
     border-radius: 8px !important;
     margin: 16px !important;
     transition: all 0.2s ease !important;
+    z-index: 1000;
 }
 [data-testid="collapsedControl"]:hover {
     color: var(--text) !important;
@@ -144,9 +145,12 @@ header[data-testid="stHeader"] {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    padding: 16px 24px;
+    padding: 16px 24px 16px 60px; /* Extra left padding to avoid overlap with toggle button */
     background: transparent;
-    border-bottom: 1px solid var(--border);
+    position: absolute;
+    top: 0;
+    width: 100%;
+    z-index: 999;
 }
 .nav-left, .nav-right {
     flex: 1;
@@ -171,11 +175,6 @@ header[data-testid="stHeader"] {
 
 /* ── EMPTY STATE / GREETING ── */
 .empty-state-wrapper {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    height: 60vh;
     text-align: center;
     animation: fadeIn 0.8s ease forwards;
 }
@@ -185,17 +184,18 @@ header[data-testid="stHeader"] {
 }
 .empty-state-wrapper h1 {
     font-family: 'Space Grotesk', sans-serif;
-    font-size: 52px;
-    font-weight: 500;
+    font-size: 42px;
+    font-weight: 600;
     color: var(--text);
-    margin-bottom: 16px;
+    margin-bottom: 12px;
     letter-spacing: -0.02em;
 }
 .empty-state-wrapper p {
     font-family: 'Inter', sans-serif;
     font-size: 16px;
     color: var(--text-sec);
-    max-width: 450px;
+    max-width: 500px;
+    margin: 0 auto;
     line-height: 1.6;
 }
 
@@ -203,7 +203,7 @@ header[data-testid="stHeader"] {
 .chat-container {
     max-width: 800px;
     margin: 0 auto;
-    padding: 40px 20px 120px 20px;
+    padding: 80px 20px 120px 20px; /* Padding top clears nav */
 }
 [data-testid="stChatMessage"] {
     border-radius: 12px !important;
@@ -230,13 +230,6 @@ header[data-testid="stHeader"] {
 }
 
 /* ── CHAT INPUT (Gemini-style Single Box) ── */
-/* Remove dark background block behind input */
-[data-testid="stBottomBlockContainer"] {
-    background: var(--bg) !important;
-    padding-bottom: 32px !important;
-}
-
-/* Target the main input wrapper */
 [data-testid="stChatInput"] {
     max-width: 800px !important;
     margin: 0 auto !important;
@@ -245,15 +238,15 @@ header[data-testid="stHeader"] {
 
 /* The actual single visual box container */
 .stChatInputContainer {
-    background: rgba(255, 255, 255, 0.04) !important;
+    background: rgba(255, 255, 255, 0.05) !important;
     border: 1px solid var(--border) !important;
-    border-radius: 24px !important; /* Rounded pill shape */
-    padding: 6px 12px !important;
+    border-radius: 30px !important; /* Fully rounded pill shape */
+    padding: 6px 16px !important;
     transition: all 0.2s ease !important;
 }
 .stChatInputContainer:focus-within {
-    border-color: rgba(255, 255, 255, 0.15) !important;
-    background: rgba(255, 255, 255, 0.06) !important;
+    border-color: rgba(255, 255, 255, 0.2) !important;
+    background: rgba(255, 255, 255, 0.08) !important;
 }
 
 /* The text area inside the box */
@@ -263,7 +256,7 @@ header[data-testid="stHeader"] {
     box-shadow: none !important;
     color: var(--text) !important;
     font-size: 15px !important;
-    padding-left: 10px !important;
+    padding-left: 8px !important;
 }
 .stChatInputContainer textarea:focus {
     background: transparent !important;
@@ -344,7 +337,7 @@ agents = {
 
 # ── Session State ─────────────────────────────────────────────────────────────
 if "active_agent" not in st.session_state:
-    st.session_state.active_agent = "minimalist" # Default based on screenshot
+    st.session_state.active_agent = "founder" 
 if "messages" not in st.session_state:
     st.session_state.messages = {}
 
@@ -355,10 +348,50 @@ if "agent" in st.query_params:
         st.session_state.active_agent = agent_key
 
 key = st.session_state.active_agent
-agent = agents.get(key, agents["minimalist"])
+agent = agents.get(key, agents["founder"])
 
 if key not in st.session_state.messages:
     st.session_state.messages[key] = []
+
+is_empty_chat = len(st.session_state.messages[key]) == 0
+
+
+# ── Dynamic Centering CSS for First Message ───────────────────────────────────
+# If there are no messages, rigidly pin the input block and intro text to the center.
+# Once a message is sent, this CSS block is skipped, snapping it back to the bottom.
+if is_empty_chat:
+    st.markdown("""
+    <style>
+    [data-testid="stBottomBlockContainer"] {
+        position: fixed !important;
+        top: 55% !important;
+        bottom: auto !important;
+        left: 50% !important;
+        transform: translate(-50%, -50%) !important;
+        width: 100% !important;
+        background: transparent !important;
+        padding-bottom: 0 !important;
+    }
+    .empty-state-positioner {
+        position: fixed;
+        top: 38%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        width: 100%;
+        z-index: 10;
+    }
+    </style>
+    """, unsafe_allow_html=True)
+else:
+    # When chat is active, ensure the bottom block has no solid background to maintain the clean look
+    st.markdown("""
+    <style>
+    [data-testid="stBottomBlockContainer"] {
+        background: var(--bg) !important;
+        padding-bottom: 32px !important;
+    }
+    </style>
+    """, unsafe_allow_html=True)
 
 
 # ── Sidebar ───────────────────────────────────────────────────────────────────
@@ -402,23 +435,22 @@ st.markdown(f"""
 
 
 # ── Chat Container ────────────────────────────────────────────────────────────
-st.markdown('<div class="chat-container">', unsafe_allow_html=True)
-
-# Render Empty State OR Chat History
-if len(st.session_state.messages[key]) == 0:
+if is_empty_chat:
     # Centered Welcome Message
     st.markdown(f"""
-    <div class="empty-state-wrapper">
-        <h1>Good evening.</h1>
-        <p>I am the <b>{agent['name']}</b>.<br>How can we align and proceed efficiently today?</p>
+    <div class="empty-state-positioner">
+        <div class="empty-state-wrapper">
+            <h1>What's on your mind?</h1>
+            <p>I am the <b>{agent['name']}</b>.<br>Let's break down your next big move.</p>
+        </div>
     </div>
     """, unsafe_allow_html=True)
 else:
+    st.markdown('<div class="chat-container">', unsafe_allow_html=True)
     for msg in st.session_state.messages[key]:
         with st.chat_message(msg["role"]):
             st.write(msg["content"])
-
-st.markdown('</div>', unsafe_allow_html=True)
+    st.markdown('</div>', unsafe_allow_html=True)
 
 
 # ── Chat Input ────────────────────────────────────────────────────────────────
