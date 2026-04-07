@@ -175,7 +175,8 @@ if "messages" not in st.session_state:
     st.session_state.messages = []
 
 
-user_input = st.chat_input("Ask your question...")
+user_input = st.chat_input("Ask your question...", key=f"chat_input_{selected_agent}")
+
 
 if user_input:
     st.session_state.messages.append({"role": "user", "content": user_input})
