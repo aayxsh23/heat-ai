@@ -99,4 +99,4 @@ if user_input:
             st.session_state.messages.append({"role": "assistant", "content": response})
 
 st.divider()
-st.markdown("← Go back to HEAT website")
+st.markdown("← [Go back to HEAT website](https://bhy476x6le.c36.airoapp.ai/)")
